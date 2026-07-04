@@ -1,0 +1,22 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.body {
+    font-family: Arial, sans-serif;
+    background-color: #503636;
+    color: #333;
+    min-height: 77.2vh;
+    min-width: 100vh;
+    max-height: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.content {
+    background-color: #885c5c;
+    width: 85%;
+    min-height: 77.2vh;
+    max-height: 100%;
+}

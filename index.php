@@ -11,6 +11,9 @@
     <?php include 'php/header.php'; ?>
 
     <div class="body">
+        <div class="panel">
+            <?php include 'php/main.php'; ?>
+        </div>
         <div class="content">
             <h2>Welcome to Music</h2>
             <p>This is the main content area.</p>

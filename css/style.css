@@ -1,22 +1,93 @@
-*{
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    
+    /* Корекція фону та картинка-хвиля */
+    background-color: #060410; 
+    background-image: url('../img/index.jpg'); 
+    background-size: cover;
+    background-position: center right;
+    background-repeat: no-repeat;
+    
+    /* Магія змішування кольорів */
+    background-blend-mode: screen;
+    
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
+    
+    background-attachment: fixed; 
+}
+
+/* Затемнення зліва направо для тексту */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, #060410 0%, rgba(6, 4, 16, 0.8) 40%, transparent 100%);
+    z-index: -1;
 }
 
 .body {
-    font-family: Arial, sans-serif;
-    background-color: #503636;
-    color: #333;
-    min-height: 77.2vh;
-    min-width: 100vh;
-    max-height: 100%;
-    display: flex;
-    justify-content: center;
+    flex-grow: 1;
+    z-index: 1;
 }
 
-.content {
-    background-color: #885c5c;
-    width: 85%;
-    min-height: 77.2vh;
-    max-height: 100%;
+/* Прибираємо синє виділення та підсвічуємо placeholder в пошуку */
+.search-box input:focus {
+    outline: none;
+    box-shadow: none;
+}
+.search-box input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ========================================= */
+/* АНІМАЦІЇ ДЛЯ МЕНЮ ТА КНОПОК               */
+/* ========================================= */
+
+/* 1. Плавна лінія, що виїжджає під меню при наведенні */
+.nav-link {
+    position: relative;
+    transition: color 0.3s ease;
+}
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: #d1228f;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+.nav-link:hover::after {
+    width: 80%;
+}
+.nav-link:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+/* 2. Анімація переливання градієнту та підйому для кнопок */
+.btn-gradient {
+    background: linear-gradient(90deg, #d1228f, #8a43f2, #d1228f);
+    background-size: 200% auto;
+    transition: all 0.4s ease;
+    border: none;
+    color: white !important;
+}
+.btn-gradient:hover {
+    background-position: right center;
+    box-shadow: 0 5px 20px rgba(209, 34, 143, 0.6);
+    transform: translateY(-2px); /* Піднімає кнопку вгору */
+}
+
+/* Ефект підсвічування рядків з музикою при наведенні */
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.09) !important;
 }

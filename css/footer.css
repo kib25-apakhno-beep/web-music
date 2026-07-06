@@ -1,5 +1,11 @@
-footer{
-    background-color: #9c5e5e;
-    height: 10vh;
-    max-width: 100%;
+/* Оновлений footer.css */
+
+footer {
+    /* Дуже темний фон, що зливається з низом нашої картинки */
+    background-color: #030208;
+    color: rgba(255, 255, 255, 0.4); /* Приглушений текст */
+    padding: 20px 0;
+    width: 100%;
+    text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); /* Тонка лінія розділення */
 }

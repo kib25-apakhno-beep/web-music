@@ -1,6 +1,10 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Перевіряємо, чи користувач авторизований
-$isLoggedIn = isset($_SESSION['user_id']); 
+$isLoggedIn = isset($_SESSION['user_id']);
+$displayName = $isLoggedIn && !empty($_SESSION['username']) ? htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8') : '';
 ?>
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark pt-4 pb-3" style="background-color: transparent;">
@@ -33,9 +37,9 @@ $isLoggedIn = isset($_SESSION['user_id']);
                             <i class="bi bi-cloud-arrow-up me-1"></i> Додати MP3
                         </a>
                         <a href="profile.php" class="text-white text-decoration-none d-flex align-items-center me-4" style="font-size: 0.85rem;">
-                            <i class="bi bi-person-circle fs-5 me-2 text-secondary"></i> Софія Богданова
+                            <i class="bi bi-person-circle fs-5 me-2 text-secondary"></i> <?php echo $displayName; ?>
                         </a>
-                        <a href="php/logout.php" class="btn btn-outline-light btn-sm rounded-pill px-4 py-1" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">Вийти</a>
+                        <a href="../db/logout.php" class="btn btn-outline-light btn-sm rounded-pill px-4 py-1" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">Вийти</a>
                     </div>
 
                 <?php else: ?>

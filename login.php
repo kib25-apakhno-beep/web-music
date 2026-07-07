@@ -19,14 +19,14 @@
             
             <h2 class="fw-bold mb-4 text-white">Вхід</h2>
             
-            <form action="php/auth.php" method="POST">
+            <form action="db/login.php" method="POST">
                 <div class="mb-3 text-start">
                     <label class="text-white-50 mb-1" style="font-size: 0.85rem;">Email</label>
-                    <input type="email" name="email" class="form-control bg-transparent text-white shadow-none" style="border: 1px solid rgba(255,255,255,0.2);" required>
+                    <input type="email" name="email" id="email" class="form-control bg-transparent text-white shadow-none" style="border: 1px solid rgba(255,255,255,0.2);" required>
                 </div>
                 <div class="mb-4 text-start">
                     <label class="text-white-50 mb-1" style="font-size: 0.85rem;">Пароль</label>
-                    <input type="password" name="password" class="form-control bg-transparent text-white shadow-none" style="border: 1px solid rgba(255,255,255,0.2);" required>
+                    <input type="password" name="password" id="password" class="form-control bg-transparent text-white shadow-none" style="border: 1px solid rgba(255,255,255,0.2);" required>
                 </div>
                 <button type="submit" class="btn rounded-pill w-100 py-2 text-white fw-bold mb-3 btn-gradient">Увійти</button>
             </form>

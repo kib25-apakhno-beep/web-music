@@ -4,19 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Melodica</title>
+    
+    <!-- НОВА НАЗВА САЙТУ НА ВКЛАДЦІ БРАУЗЕРА -->
+    <title>Vestra - Твій новий звук</title>
+    
+    <link rel="icon" type="image/png" href="img/favicon.png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
-    <!-- МАГІЯ: Цей рядок 100% змусить браузер показати нові анімації та градієнти -->
     <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
     <?php include 'php/header.php'; ?>
 
-    <!-- Звичайний container для ідеального вирівнювання з логотипом -->
     <main class="body container mt-5 pt-3 position-relative">
         <div class="row">
             
@@ -28,7 +30,6 @@
                 
                 <h1 class="display-3 fw-bold text-uppercase mb-4" style="line-height: 1.1;">
                     Відкрий <br> свій <br>
-                    <!-- ПОВЕРНУТО ЯСКРАВИЙ СУЦІЛЬНИЙ ТЕКСТ -->
                     <span style="background: linear-gradient(90deg, #ff6bc1, #b273ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0px 4px 15px rgba(178, 115, 255, 0.4)); font-weight: 900;">новий звук</span>
                 </h1>
                 
@@ -42,7 +43,6 @@
                     
                     <input type="text" class="form-control bg-transparent border-0 text-white shadow-none ms-2" placeholder="Знайти трек, виконавця або альбом...">
                     
-                    <!-- Кнопка з класом для анімації -->
                     <button class="btn rounded-pill px-4 py-2 text-white fw-bold btn-gradient">Знайти</button>
                 </div>
                 
@@ -89,6 +89,9 @@
 
     <?php include 'php/footer.php'; ?>
 
+    <?php include 'php/player.php'; ?>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

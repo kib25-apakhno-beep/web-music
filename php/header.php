@@ -1,16 +1,15 @@
 <?php
-// Перевіряємо, чи користувач авторизований
 $isLoggedIn = isset($_SESSION['user_id']); 
 ?>
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark pt-4 pb-3" style="background-color: transparent;">
         <div class="container">
             
-            <a class="navbar-brand d-flex align-items-center" href="index.php">
-                <div class="rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 30px; height: 30px; background: linear-gradient(135deg, #d1228f, #8a43f2);">
-                    <span class="fw-bold text-white" style="font-size: 0.9rem;">M</span>
+            <a class="navbar-brand d-flex align-items-center" href="index.php" style="transition: 0.3s;">
+                <div class="rounded-circle d-flex justify-content-center align-items-center me-2" style="width: 38px; height: 38px; background: linear-gradient(135deg, #ff6bc1, #8a43f2); box-shadow: 0 0 15px rgba(255, 107, 193, 0.6);">
+                    <i class="bi bi-soundwave text-white" style="font-size: 1.3rem;"></i>
                 </div>
-                <span class="fw-bold text-uppercase" style="font-size: 1.1rem; letter-spacing: 1px;">Melodica</span>
+                <span class="fw-bold text-uppercase" style="font-size: 1.25rem; letter-spacing: 3px; text-shadow: 0 0 10px rgba(255,255,255,0.3);">Vestra</span>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -33,7 +32,8 @@ $isLoggedIn = isset($_SESSION['user_id']);
                             <i class="bi bi-cloud-arrow-up me-1"></i> Додати MP3
                         </a>
                         <a href="profile.php" class="text-white text-decoration-none d-flex align-items-center me-4" style="font-size: 0.85rem;">
-                            <i class="bi bi-person-circle fs-5 me-2 text-secondary"></i> Софія Богданова
+                            <i class="bi bi-person-circle fs-5 me-2 text-secondary"></i> 
+                            <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Користувач'; ?>
                         </a>
                         <a href="php/logout.php" class="btn btn-outline-light btn-sm rounded-pill px-4 py-1" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">Вийти</a>
                     </div>
@@ -53,5 +53,4 @@ $isLoggedIn = isset($_SESSION['user_id']);
             </div>
         </div>
     </nav>
-
 </header>

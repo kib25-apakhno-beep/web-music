@@ -91,3 +91,86 @@ body::before {
 .track-item:hover {
     background: rgba(255, 255, 255, 0.09) !important;
 }
+/* ========================================= */
+/* СТИЛІ ДЛЯ ПЛАВАЮЧОГО МУЗИЧНОГО ПЛЕЄРА     */
+/* ========================================= */
+
+body {
+    padding-bottom: 120px;
+}
+
+@keyframes spinRecord {
+    100% { transform: rotate(360deg); }
+}
+.spinning-record {
+    animation: spinRecord 4s linear infinite;
+    border: 2px solid rgba(255, 107, 193, 0.5);
+    box-shadow: 0 0 10px rgba(255, 107, 193, 0.4);
+}
+
+@keyframes equalize {
+    0% { height: 4px; }
+    50% { height: 16px; }
+    100% { height: 4px; }
+}
+.eq-bar {
+    width: 3px;
+    background: #ff6bc1;
+    border-radius: 3px;
+    display: inline-block;
+    margin: 0 1px;
+    animation: equalize 1s ease-in-out infinite;
+}
+.eq-bar:nth-child(2) { animation-delay: 0.2s; }
+.eq-bar:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes neonBreathe {
+    0% { box-shadow: 0 0 10px rgba(209, 34, 143, 0.5); }
+    50% { box-shadow: 0 0 25px rgba(209, 34, 143, 0.9), 0 0 10px #8a43f2; }
+    100% { box-shadow: 0 0 10px rgba(209, 34, 143, 0.5); }
+}
+
+.play-pause-btn {
+    transition: all 0.3s ease;
+    animation: neonBreathe 2s infinite;
+}
+.play-pause-btn:hover {
+    transform: scale(1.15);
+}
+
+.player-icon {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.player-icon:hover {
+    color: #ff6bc1 !important;
+    transform: scale(1.2);
+}
+
+/* Оновлені повзунки (БЕЗ БАГІВ З ТІННЮ) */
+.custom-range {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1); /* Базовий сірий колір */
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Маленька рожева крапка (повзунок) */
+.custom-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #ff6bc1;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 107, 193, 0.8);
+    transition: transform 0.1s ease;
+}
+
+.custom-range::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+}

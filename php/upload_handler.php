@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once '../function/db_helpers.php';
 
 // Захист: чи авторизований користувач
 if (!isset($_SESSION['user_id'])) {
@@ -70,8 +71,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Фінальне переміщення файлу з тимчасової папки сервера у нашу
         if (move_uploaded_file($file["tmp_name"], $target_file)) {
-            header('Location: ../mymusic.php?success=1');
-            exit();
+            $title = $safe_name;
+            $url = 'uploads/' . $final_filename;
+            $composer = 'Unknown';
+            $savedId = saveSongToDb($title, $url, $composer);
+
+            if ($savedId !== false) {
+                header('Location: ../mymusic.php?success=1');
+                exit();
+            }
+
+            die("Помилка при збереженні треку в базі даних.");
         } else {
             die("Помилка при збереженні файлу. Перевірте права доступу до папки uploads.");
         }

@@ -8,7 +8,7 @@
         $password = $_POST['password'];
 
         // Підготовка SQL-запиту для отримання користувача за email
-        $stmt = $conn->prepare("SELECT id, username, password FROM users WHERE email = ?");
+        $stmt = $conn->prepare("SELECT id_user AS id, username, password FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();

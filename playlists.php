@@ -1,6 +1,37 @@
 <?php 
 session_start(); 
+require_once 'function/db_helpers.php';
+ensureUserSessionFields();
 if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
+
+$userId = getUserId();
+$playlists = getPlaylistsForUser($userId);
+$customPlaylists = [];
+foreach ($playlists as $playlist) {
+    $normalizedTitle = normalizePlaylistTitle($playlist['title']);
+    if ($normalizedTitle === 'улюблені' || $normalizedTitle === 'улюблене' || $normalizedTitle === 'favorites' || $normalizedTitle === 'favourites') {
+        continue;
+    }
+    $customPlaylists[] = $playlist;
+}
+
+$favoritesPlaylistId = getOrCreateFavoritesPlaylist($userId);
+$favoritesSongs = getPlaylistSongs($favoritesPlaylistId);
+$favoritesCount = count($favoritesSongs);
+
+// Precompute counts for custom playlists
+$playlistCounts = [];
+foreach ($customPlaylists as $p) {
+    $plistSongs = getPlaylistSongs((int)$p['id']);
+    $playlistCounts[(int)$p['id']] = count($plistSongs);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && trim($_POST['playlist_name']) !== '') {
+    $title = trim($_POST['playlist_name']);
+    createPlaylist($userId, $title);
+    header('Location: playlists.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -46,7 +77,7 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
         
         <div class="row g-4">
             <div class="col-6 col-md-4 col-lg-3">
-                <div class="playlist-card h-100 d-flex flex-column align-items-center justify-content-center p-4" style="border: 2px dashed rgba(255,255,255,0.2); background: transparent;">
+                <div class="playlist-card h-100 d-flex flex-column align-items-center justify-content-center p-4" style="border: 2px dashed rgba(255,255,255,0.2); background: transparent;" data-bs-toggle="modal" data-bs-target="#createPlaylistModal">
                     <i class="bi bi-plus-circle text-white-50 mb-2" style="font-size: 2.5rem;"></i>
                     <h6 class="text-white-50 fw-bold">Створити новий</h6>
                 </div>
@@ -61,30 +92,84 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h6 class="text-white fw-bold mb-1" data-favorites-title>Улюблені</h6>
-                                <small class="text-white-50" data-favorites-count>Поки порожній</small>
+                                <small class="text-white-50" data-favorites-count><?php echo $favoritesCount; ?> треків</small>
                             </div>
                             <span class="badge rounded-pill text-white-50" style="background: rgba(255,255,255,0.08);" data-favorites-badge>Не можна видалити</span>
                         </div>
+                        <div class="text-white-50 small mt-2">Сума тривалості: <span id="favorites-duration">0 хв 0 сек</span></div>
                     </div>
                 </div>
             </div>
             
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="playlist-card h-100">
-                    <div class="playlist-img" style="background: linear-gradient(135deg, #2b1055, #7597de);">
-                        <i class="bi bi-moon-stars text-white" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                    <div class="p-3">
-                        <h6 class="text-white fw-bold mb-1">Нічний вайб</h6>
-                        <small class="text-white-50">12 треків</small>
+            <?php foreach ($customPlaylists as $playlist): ?>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="playlist-card-wrapper h-100 position-relative">
+                        <a href="playlist.php?id=<?php echo (int)$playlist['id']; ?>" class="text-decoration-none d-block h-100">
+                            <div class="playlist-card h-100">
+                                <div class="playlist-img" style="background: linear-gradient(135deg, #2b1055, #7597de);">
+                                    <i class="bi bi-music-note-list text-white" style="font-size: 3rem; opacity: 0.5;"></i>
+                                </div>
+                                        <div class="p-3">
+                                                <h6 class="text-white fw-bold mb-1"><?php echo htmlspecialchars($playlist['title']); ?></h6>
+                                                <small class="text-white-50"><?php echo (isset($playlistCounts[(int)$playlist['id']]) ? $playlistCounts[(int)$playlist['id']] : 0) . ' треків'; ?></small>
+                                            </div>
+                            </div>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-light position-absolute play-playlist-btn" data-playlist-id="<?php echo (int)$playlist['id']; ?>" style="top:10px; right:10px; opacity:0.9;">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
                     </div>
                 </div>
-            </div>
+            <?php endforeach; ?>
         </div>
     </main>
+
+    <div class="modal fade" id="createPlaylistModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: rgba(10, 8, 24, 0.95); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-white">Створити плейлист</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <label class="form-label text-white-50">Назва плейлиста</label>
+                        <input type="text" name="playlist_name" class="form-control bg-transparent text-white" placeholder="Наприклад: Вечірній вайб" required>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Скасувати</button>
+                        <button type="submit" class="btn btn-gradient text-white">Створити</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <?php include 'php/footer.php'; ?>
     <?php include 'php/player.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.play-playlist-btn').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const id = btn.getAttribute('data-playlist-id');
+                    if (!id) return;
+                    fetch('playlist_json.php?id=' + encodeURIComponent(id))
+                        .then(r => r.json())
+                        .then(function (tracks) {
+                            if (Array.isArray(tracks) && tracks.length) {
+                                if (window.loadAndPlay) window.loadAndPlay(tracks, 0);
+                            } else {
+                                alert('У цьому плейлисті поки немає треків');
+                            }
+                        }).catch(function () {
+                            alert('Не вдалося завантажити плейлист');
+                        });
+                });
+            });
+        });
+    </script>
 </body>
 </html>

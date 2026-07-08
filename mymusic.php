@@ -1,6 +1,11 @@
-<?php 
+<?php
 session_start(); 
+require_once 'function/db_helpers.php';
+ensureUserSessionFields();
 if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
+
+$userId = getUserId();
+$playlists = getPlaylistsForUser($userId);
 ?>
 <!DOCTYPE html>
 <html lang="uk">
@@ -58,37 +63,34 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
 
         <div class="tracks-list" style="max-width: 100%;">
             <?php
-            $upload_dir = 'uploads/';
-            $mp3_files = [];
-            if (is_dir($upload_dir)) {
-                $mp3_files = glob($upload_dir . "*.mp3");
-            }
+            $songs = getSongsForUser();
 
-            if (count($mp3_files) > 0) {
+            if (count($songs) > 0) {
                 
                 // === ГЕНЕРУЄМО JAVASCRIPT МАСИВ УСІХ ТРЕКІВ ===
                 echo "<script>\nconst pageTracks = [\n";
-                foreach ($mp3_files as $file) {
-                    $filename = basename($file);
-                    $song_name = basename($file, ".mp3");
-                    $file_url = 'uploads/' . rawurlencode($filename);
-                    echo "{ url: '$file_url', title: '" . addslashes($song_name) . "', artist: 'Vestra', filename: '" . addslashes($filename) . "' },\n";
+                foreach ($songs as $index => $song) {
+                    $filename = basename($song['url']);
+                    $song_name = $song['title'];
+                    $file_url = $song['url'];
+                    echo "{ id: '" . (int)$song['id'] . "', url: '$file_url', title: '" . addslashes($song_name) . "', artist: '" . addslashes($song['composer'] ?: 'Vestra') . "', filename: '" . addslashes($filename) . "' },\n";
                 }
                 echo "];\n</script>\n";
 
                 // === ВИВОДИМО СПИСОК HTML ===
-                foreach ($mp3_files as $index => $file) {
-                    $filename = basename($file);
-                    $song_name = basename($file, ".mp3");
+                foreach ($songs as $index => $song) {
+                    $filename = basename($song['url']);
+                    $song_name = $song['title'];
                     $track_data = json_encode([
+                        'id' => (int)$song['id'],
                         'title' => $song_name,
-                        'artist' => 'Vestra',
+                        'artist' => $song['composer'] ?: 'Vestra',
                         'filename' => $filename,
-                        'url' => 'uploads/' . rawurlencode($filename)
+                        'url' => $song['url']
                     ], JSON_UNESCAPED_UNICODE);
                     
                     echo '
-                    <div class="track-item d-flex align-items-center p-2 rounded-3 mb-2" style="background: rgba(255,255,255,0.03); transition: 0.3s;">
+                    <div class="track-item d-flex align-items-center p-2 rounded-3 mb-2" style="background: rgba(255,255,255,0.03); transition: 0.3s; cursor: pointer;" data-track-index="' . $index . '">
                         <div class="text-white-50 text-center fw-bold" style="width: 50px;">' . ($index + 1) . '</div>
                         
                         <div class="d-flex align-items-center flex-grow-1">
@@ -97,11 +99,11 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                             </div>
                             <div>
                                 <h6 class="mb-0 fw-bold text-white">' . htmlspecialchars($song_name) . '</h6>
-                                <small class="text-white-50" style="font-size: 0.75rem;">Локальний файл</small>
+                                <small class="text-white-50" style="font-size: 0.75rem;">' . htmlspecialchars($song['composer'] ?: 'Локальний файл') . '</small>
                             </div>
                         </div>
                         
-                        <div class="pe-3" style="cursor: pointer;" onclick="loadAndPlay(pageTracks, ' . $index . ')">
+                        <div class="pe-3 track-play-btn" style="cursor: pointer;" data-track-index="' . $index . '">
                             <i class="bi bi-play-circle-fill fs-3" style="color: #ff6bc1; transition: 0.3s;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"></i>
                         </div>
 
@@ -109,18 +111,24 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                             <i class="bi bi-three-dots-vertical text-white-50 fs-5" style="cursor: pointer;" data-bs-toggle="dropdown"></i>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end rounded-3 mt-2">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="toggleFavoriteTrack(' . $track_data . '); return false;">
-                                        <i class="bi bi-heart me-3"></i> Додати в улюблене
+                                    <a class="dropdown-item d-flex align-items-center track-action-favorite" href="#" data-track-index="' . $index . '">
+                                        <i class="bi bi-heart me-3"></i> <span class="track-favorite-label">Додати в улюблене</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="showComingSoon(); return false;">
-                                        <i class="bi bi-collection-play me-3"></i> Додати в плейлист
+                                    <a class="dropdown-item d-flex align-items-center track-playlist-toggle" href="#" data-track-index="' . $index . '">
+                                        <i class="bi bi-collection-play me-3"></i> <span class="track-playlist-label">Додати в плейлист</span>
                                     </a>
+                                    <div class="px-2 pb-2 d-none playlist-submenu" data-track-index="' . $index . '">
+                                        ' . ($playlists ? '' : '<div class="text-white-50 small px-2">Плейлисти відсутні</div>') . '
+                                        ' . implode(array_map(function($playlist) use ($song, $index) {
+                                            return '<button type="button" class="btn btn-sm w-100 text-start rounded-3 mt-1 playlist-option" data-playlist-id="' . (int)$playlist['id'] . '" data-track-id="' . (int)$song['id'] . '" data-track-index="' . $index . '">+ ' . htmlspecialchars($playlist['title']) . '</button>';
+                                        }, $playlists)) . '
+                                    </div>
                                 </li>
                                 <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.1);"></li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center text-danger" href="php/delete_track.php?file=' . rawurlencode($filename) . '" onclick="return confirm(\'Ви точно хочете видалити цей трек назавжди?\')">
+                                    <a class="dropdown-item d-flex align-items-center text-danger track-action-delete" href="php/delete_track.php?file=' . rawurlencode($filename) . '" data-track-name="' . htmlspecialchars($song_name, ENT_QUOTES, 'UTF-8') . '">
                                         <i class="bi bi-trash3 me-3"></i> Видалити трек
                                     </a>
                                 </li>
@@ -143,5 +151,133 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
     <?php include 'php/footer.php'; ?>
     <?php include 'php/player.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.playlists = <?php echo json_encode($playlists, JSON_UNESCAPED_UNICODE); ?>;
+        window.getPlaylists = function () {
+            return window.playlists || [];
+        };
+
+        function updateTrackMenuState() {
+            document.querySelectorAll('.track-action-favorite').forEach(function (link) {
+                const track = pageTracks[Number(link.dataset.trackIndex)];
+                const label = link.querySelector('.track-favorite-label');
+                const icon = link.querySelector('i');
+                if (!track || !label || !icon) return;
+
+                const formData = new FormData();
+                formData.append('song_id', track.id);
+                formData.append('check_only', '1');
+
+                fetch('favorite_actions.php', {
+                    method: 'POST',
+                    body: formData
+                }).then(function (response) {
+                    return response.text();
+                }).then(function (text) {
+                    const favorite = text === 'favorite';
+                    label.textContent = favorite ? '✓ Улюблене' : 'Додати в улюблене';
+                    icon.className = favorite ? 'bi bi-heart-fill me-3' : 'bi bi-heart me-3';
+                    icon.style.color = favorite ? '#ff6bc1' : '';
+                });
+            });
+        }
+
+        function renderPlaylistSubmenu(trackIndex) {
+            const submenu = document.querySelector('.playlist-submenu[data-track-index="' + trackIndex + '"]');
+            if (!submenu) return;
+            submenu.classList.remove('d-none');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            updateTrackMenuState();
+
+            document.querySelectorAll('.track-item[data-track-index]').forEach(function (row) {
+                row.addEventListener('click', function (event) {
+                    if (event.target.closest('.dropdown, .dropdown-menu, .dropdown-item')) return;
+                    loadAndPlay(pageTracks, Number(row.dataset.trackIndex));
+                });
+            });
+
+            document.querySelectorAll('.track-play-btn').forEach(function (button) {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    loadAndPlay(pageTracks, Number(button.dataset.trackIndex));
+                });
+            });
+
+            document.querySelectorAll('.track-action-favorite').forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const track = pageTracks[Number(link.dataset.trackIndex)];
+                    if (!track) return;
+
+                    const formData = new FormData();
+                    formData.append('song_id', track.id);
+
+                    fetch('favorite_actions.php', {
+                        method: 'POST',
+                        body: formData
+                    }).then(function () {
+                        updateTrackMenuState();
+                    });
+                });
+            });
+
+            document.querySelectorAll('.track-playlist-toggle').forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const trackIndex = link.dataset.trackIndex;
+                    const submenu = document.querySelector('.playlist-submenu[data-track-index="' + trackIndex + '"]');
+                    if (submenu) {
+                        const isHidden = submenu.classList.contains('d-none');
+                        document.querySelectorAll('.playlist-submenu').forEach(function (item) {
+                            item.classList.add('d-none');
+                        });
+                        if (isHidden) {
+                            submenu.classList.remove('d-none');
+                            renderPlaylistSubmenu(trackIndex);
+                        }
+                    }
+                });
+            });
+
+            document.addEventListener('click', function (event) {
+                const button = event.target.closest('.playlist-option');
+                if (!button) return;
+                event.preventDefault();
+                event.stopPropagation();
+                const playlistId = button.getAttribute('data-playlist-id');
+                const trackId = button.getAttribute('data-track-id');
+                const formData = new FormData();
+                formData.append('track_id', trackId);
+                formData.append('playlist_id', playlistId);
+
+                fetch('playlist_actions.php', {
+                    method: 'POST',
+                    body: formData
+                }).then(function (response) {
+                    return response.text();
+                }).then(function () {
+                    const label = button.closest('.dropdown').querySelector('.track-playlist-label');
+                    if (label) {
+                        label.textContent = '✓ Додано в плейлист';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.track-action-delete').forEach(function (link) {
+                link.addEventListener('click', function (event) {
+                    const confirmed = confirm('Ви точно хочете видалити цей трек назавжди?');
+                    if (!confirmed) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

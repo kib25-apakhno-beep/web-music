@@ -21,12 +21,68 @@
     let isPlaying = false;
     let currentPlaylist = []; 
     let currentTrackIndex = 0; 
+    const PLAYER_STATE_KEY = 'vestra_player_state';
 
     window.currentPlaylist = currentPlaylist;
     window.currentTrackIndex = currentTrackIndex;
 
     audio.volume = volumeBar.value / 100;
     updateSliderBackground(volumeBar, volumeBar.value);
+
+    function savePlayerState() {
+        const state = {
+            playlist: currentPlaylist,
+            trackIndex: currentTrackIndex,
+            isPlaying: isPlaying && audio.src,
+            currentTime: audio.currentTime || 0,
+            volume: audio.volume
+        };
+        localStorage.setItem(PLAYER_STATE_KEY, JSON.stringify(state));
+    }
+
+    function restorePlayerState() {
+        try {
+            const raw = localStorage.getItem(PLAYER_STATE_KEY);
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            if (!state || !Array.isArray(state.playlist) || state.playlist.length === 0) return;
+
+            currentPlaylist = state.playlist;
+            currentTrackIndex = Number(state.trackIndex) || 0;
+            window.currentPlaylist = currentPlaylist;
+            window.currentTrackIndex = currentTrackIndex;
+            audio.volume = typeof state.volume === 'number' ? state.volume : volumeBar.value / 100;
+            volumeBar.value = Math.round(audio.volume * 100);
+            updateSliderBackground(volumeBar, volumeBar.value);
+
+            const track = currentPlaylist[currentTrackIndex];
+            if (!track || !track.url) return;
+
+            playerTitle.innerText = track.title;
+            playerArtist.innerText = track.artist;
+            audio.src = track.url;
+            audio.load();
+            audio.currentTime = Number(state.currentTime) || 0;
+            checkFavoriteStatus(track.filename);
+
+            if (state.isPlaying) {
+                const playPromise = audio.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch(function () {
+                        isPlaying = false;
+                        updatePlayerUI();
+                    });
+                }
+                isPlaying = true;
+                updatePlayerUI();
+            } else {
+                isPlaying = false;
+                updatePlayerUI();
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     function loadAndPlay(playlist, startIndex) {
         currentPlaylist = playlist;
@@ -41,16 +97,25 @@
     function playCurrentTrack() {
         if (currentPlaylist.length === 0) return;
         const track = currentPlaylist[currentTrackIndex];
-        
+        if (!track || !track.url) return;
+
         audio.src = track.url;
+        audio.load();
         playerTitle.innerText = track.title;
         playerArtist.innerText = track.artist;
-        
+
         checkFavoriteStatus(track.filename);
 
-        audio.play();
+        const playPromise = audio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(function () {
+                isPlaying = false;
+                updatePlayerUI();
+            });
+        }
         isPlaying = true;
         updatePlayerUI();
+        savePlayerState();
     }
 
     nextBtn.addEventListener('click', () => {
@@ -99,7 +164,24 @@
             updateSliderBackground(progressBar, progressPercent);
             currentTimeEl.innerText = formatTime(audio.currentTime);
             totalTimeEl.innerText = formatTime(audio.duration);
+            savePlayerState();
         }
+    });
+
+    audio.addEventListener('play', () => {
+        isPlaying = true;
+        updatePlayerUI();
+        savePlayerState();
+    });
+
+    audio.addEventListener('pause', () => {
+        isPlaying = false;
+        updatePlayerUI();
+        savePlayerState();
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+        savePlayerState();
     });
 
     progressBar.addEventListener('input', () => {
@@ -125,6 +207,9 @@
     function toggleActive(el) {
         el.style.color = el.style.color === 'rgb(255, 107, 193)' ? '' : '#ff6bc1';
     }
+
+    window.addEventListener('beforeunload', savePlayerState);
+    window.addEventListener('DOMContentLoaded', restorePlayerState);
 
     function getFavoriteKey(trackOrFilename) {
         if (typeof trackOrFilename === 'string') {
@@ -184,58 +269,7 @@
     }
 
     // ==========================================
-    // ЧАСТИНА 2: БЕЗШОВНА НАВІГАЦІЯ (AJAX)
+    // ЧАСТИНА 2: НАВІГАЦІЯ ПО СТОРІНКАХ
     // ==========================================
-    document.addEventListener('click', function(e) {
-        const link = e.target.closest('a');
-        if (!link) return;
-
-        const href = link.getAttribute('href');
-        
-        // Ігноруємо зовнішні лінки та системні файли
-        if (!href || href.startsWith('http') || href.startsWith('#') || href.includes('logout.php') || href.includes('delete_track.php') || href.includes('upload')) {
-            return;
-        }
-
-        e.preventDefault(); 
-        loadPage(href);
-    });
-
-    window.addEventListener('popstate', function() {
-        loadPage(location.pathname.split('/').pop() || 'index.php');
-    });
-
-    async function loadPage(url) {
-        try {
-            const response = await fetch(url);
-            const html = await response.text();
-
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            const newMain = doc.querySelector('main');
-            const currentMain = document.querySelector('main');
-
-            if (newMain && currentMain) {
-                // Підміняємо контент
-                currentMain.innerHTML = newMain.innerHTML;
-                
-                history.pushState({}, '', url);
-                document.title = doc.title;
-
-                // Перезапускаємо скрипти на новій сторінці
-                const scripts = currentMain.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    newScript.textContent = oldScript.textContent;
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-                
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            } else {
-                window.location.href = url; 
-            }
-        } catch (error) {
-            window.location.href = url; 
-        }
-    }
+    // Залишаємо стандартну навігацію браузера, щоб сторінки не ламалися
+    // під час переходів між розділами сайту.

@@ -53,6 +53,23 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
             </div>
 
             <div class="col-6 col-md-4 col-lg-3">
+                <div class="playlist-card h-100" id="favorites-playlist-card" onclick="window.location.href='favorites.php'" style="cursor: pointer;">
+                    <div class="playlist-img" style="background: linear-gradient(135deg, #ff6bc1, #d1228f);">
+                        <i class="bi bi-heart-fill text-white" style="font-size: 3rem; opacity: 0.9;"></i>
+                    </div>
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-white fw-bold mb-1" data-favorites-title>Улюблені</h6>
+                                <small class="text-white-50" data-favorites-count>Поки порожній</small>
+                            </div>
+                            <span class="badge rounded-pill text-white-50" style="background: rgba(255,255,255,0.08);" data-favorites-badge>Не можна видалити</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-6 col-md-4 col-lg-3">
                 <div class="playlist-card h-100">
                     <div class="playlist-img" style="background: linear-gradient(135deg, #2b1055, #7597de);">
                         <i class="bi bi-moon-stars text-white" style="font-size: 3rem; opacity: 0.5;"></i>
@@ -60,18 +77,6 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                     <div class="p-3">
                         <h6 class="text-white fw-bold mb-1">Нічний вайб</h6>
                         <small class="text-white-50">12 треків</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="playlist-card h-100">
-                    <div class="playlist-img" style="background: linear-gradient(135deg, #ff6bc1, #f6416c);">
-                        <i class="bi bi-fire text-white" style="font-size: 3rem; opacity: 0.5;"></i>
-                    </div>
-                    <div class="p-3">
-                        <h6 class="text-white fw-bold mb-1">Тренування</h6>
-                        <small class="text-white-50">24 треки</small>
                     </div>
                 </div>
             </div>

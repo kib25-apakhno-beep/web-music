@@ -80,6 +80,12 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                 foreach ($mp3_files as $index => $file) {
                     $filename = basename($file);
                     $song_name = basename($file, ".mp3");
+                    $track_data = json_encode([
+                        'title' => $song_name,
+                        'artist' => 'Vestra',
+                        'filename' => $filename,
+                        'url' => 'uploads/' . rawurlencode($filename)
+                    ], JSON_UNESCAPED_UNICODE);
                     
                     echo '
                     <div class="track-item d-flex align-items-center p-2 rounded-3 mb-2" style="background: rgba(255,255,255,0.03); transition: 0.3s;">
@@ -103,7 +109,7 @@ if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit(); }
                             <i class="bi bi-three-dots-vertical text-white-50 fs-5" style="cursor: pointer;" data-bs-toggle="dropdown"></i>
                             <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end rounded-3 mt-2">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="showComingSoon(); return false;">
+                                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="toggleFavoriteTrack(' . $track_data . '); return false;">
                                         <i class="bi bi-heart me-3"></i> Додати в улюблене
                                     </a>
                                 </li>

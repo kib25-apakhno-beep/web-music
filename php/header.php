@@ -21,9 +21,7 @@ $isLoggedIn = isset($_SESSION['user_id']);
                 <?php if ($isLoggedIn): ?>
                     <ul class="navbar-nav ms-auto" style="font-size: 0.85rem;">
                         <li class="nav-item px-2"><a class="nav-link text-white" href="index.php">Головна</a></li>
-                        <li class="nav-item px-2"><a class="nav-link text-white-50" href="catalog.php">Каталог</a></li>
                         <li class="nav-item px-2"><a class="nav-link text-white-50" href="playlists.php">Плейлисти</a></li>
-                        <li class="nav-item px-2"><a class="nav-link text-white-50" href="mymusic.php">Моя музика</a></li>
                     </ul>
                     
                     <div class="d-flex align-items-center mt-3 mt-lg-0 ms-lg-4">

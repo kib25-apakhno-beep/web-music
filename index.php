@@ -1,4 +1,11 @@
-<?php session_start(); ?>
+<?php
+session_start();
+
+if (isset($_SESSION['user_id'])) {
+    header('Location: catalog.php');
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="uk">
 <head>

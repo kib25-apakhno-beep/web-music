@@ -26,7 +26,7 @@
             $user_id = $conn->insert_id;
             $_SESSION['user_id'] = $user_id;
             $_SESSION['username'] = $username;
-            header("Location: ../index.php");
+            header("Location: ../catalog.php");
             exit;
         } else {
             echo "Помилка реєстрації: " . $stmt->error;

@@ -18,6 +18,8 @@ foreach ($playlists as $playlist) {
 $favoritesPlaylistId = getOrCreateFavoritesPlaylist($userId);
 $favoritesSongs = getPlaylistSongs($favoritesPlaylistId);
 $favoritesCount = count($favoritesSongs);
+$userSongs = getSongsForUser();
+$hasMyMusicPlaylist = count($userSongs) > 0;
 
 // Precompute counts for custom playlists
 $playlistCounts = [];
@@ -101,6 +103,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && t
                 </div>
             </div>
             
+            <?php if ($hasMyMusicPlaylist): ?>
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="playlist-card-wrapper h-100 position-relative">
+                        <a href="mymusic.php" class="text-decoration-none d-block h-100">
+                            <div class="playlist-card h-100">
+                                <div class="playlist-img" style="background: linear-gradient(135deg, #d1228f, #8a43f2);">
+                                    <i class="bi bi-music-note-list text-white" style="font-size: 3rem; opacity: 0.6;"></i>
+                                </div>
+                                <div class="p-3">
+                                    <h6 class="text-white fw-bold mb-1">Моя музика</h6>
+                                    <small class="text-white-50 d-block"><?php echo count($userSongs); ?> треків</small>
+                                </div>
+                            </div>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-light position-absolute my-music-play-btn" style="top:10px; right:10px; opacity:0.9;">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <?php foreach ($customPlaylists as $playlist): ?>
                 <div class="col-6 col-md-4 col-lg-3">
                     <div class="playlist-card-wrapper h-100 position-relative">
@@ -111,7 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && t
                                 </div>
                                         <div class="p-3">
                                                 <h6 class="text-white fw-bold mb-1"><?php echo htmlspecialchars($playlist['title']); ?></h6>
-                                                <small class="text-white-50"><?php echo (isset($playlistCounts[(int)$playlist['id']]) ? $playlistCounts[(int)$playlist['id']] : 0) . ' треків'; ?></small>
+                                                <small class="text-white-50 d-block"><?php echo (isset($playlistCounts[(int)$playlist['id']]) ? $playlistCounts[(int)$playlist['id']] : 0) . ' треків'; ?></small>
+                                                <small class="text-white-50 d-block mt-1">Сума тривалості: <span class="playlist-duration" data-playlist-id="<?php echo (int)$playlist['id']; ?>">0 хв 0 сек</span></small>
                                             </div>
                             </div>
                         </a>
@@ -149,6 +173,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && t
     <?php include 'php/player.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        const favoritesPlaylistId = <?php echo (int)$favoritesPlaylistId; ?>;
+        const myMusicTracks = <?php echo json_encode(array_map(function($song) {
+            return [
+                'id' => (int)$song['id'],
+                'title' => $song['title'],
+                'artist' => $song['composer'] ?: 'Vestra',
+                'filename' => basename($song['url']),
+                'url' => $song['url']
+            ];
+        }, $userSongs), JSON_UNESCAPED_UNICODE); ?>;
+
+        function formatDuration(totalSeconds) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = Math.floor(totalSeconds % 60);
+            return minutes + ' хв ' + (seconds < 10 ? '0' : '') + seconds + ' сек';
+        }
+
+        function computeAndRenderPlaylistDuration(playlistId, el) {
+            if (!playlistId || !el) return;
+            fetch('playlist_json.php?id=' + encodeURIComponent(playlistId))
+                .then(function (response) { return response.json(); })
+                .then(function (tracks) {
+                    if (!Array.isArray(tracks) || !tracks.length) {
+                        el.textContent = '0 хв 0 сек';
+                        return;
+                    }
+
+                    let index = 0;
+                    let total = 0;
+                    function next() {
+                        if (index >= tracks.length) {
+                            el.textContent = formatDuration(total);
+                            return;
+                        }
+                        const track = tracks[index];
+                        const audio = document.createElement('audio');
+                        audio.preload = 'metadata';
+                        audio.src = track.url;
+                        audio.addEventListener('loadedmetadata', function () {
+                            total += isFinite(audio.duration) ? audio.duration : 0;
+                            index += 1;
+                            setTimeout(next, 30);
+                        });
+                        audio.addEventListener('error', function () {
+                            index += 1;
+                            setTimeout(next, 30);
+                        });
+                    }
+                    next();
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.play-playlist-btn').forEach(function (btn) {
                 btn.addEventListener('click', function (e) {
@@ -169,6 +245,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && t
                         });
                 });
             });
+
+            document.querySelectorAll('.playlist-duration').forEach(function (el) {
+                const playlistId = el.getAttribute('data-playlist-id');
+                computeAndRenderPlaylistDuration(playlistId, el);
+            });
+
+            const myMusicBtn = document.querySelector('.my-music-play-btn');
+            if (myMusicBtn && window.loadAndPlay && myMusicTracks.length) {
+                myMusicBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.loadAndPlay(myMusicTracks, 0);
+                });
+            }
+
+            const favoritesDurationEl = document.getElementById('favorites-duration');
+            if (favoritesDurationEl) {
+                computeAndRenderPlaylistDuration(favoritesPlaylistId, favoritesDurationEl);
+            }
         });
     </script>
 </body>

@@ -23,9 +23,28 @@ function normalizePlaylistTitle($title) {
     return $title;
 }
 
+function parseGenres($genreData) {
+    if (empty($genreData)) {
+        return ['Інший'];
+    }
+    
+    $decoded = json_decode($genreData, true);
+    if (is_array($decoded) && !empty($decoded)) {
+        return $decoded;
+    }
+    
+    // Якщо не JSON, повертаємо як масив з одного елемента
+    return [trim($genreData)];
+}
+
+function formatGenres($genreData) {
+    $genres = parseGenres($genreData);
+    return implode(', ', $genres);
+}
+
 function getAllSongs() {
     $conn = getDbConnection();
-    $result = $conn->query('SELECT id_songs AS id, title, url, composer FROM songs ORDER BY id_songs DESC');
+    $result = $conn->query('SELECT id_songs AS id, title, url, composer, genre FROM songs ORDER BY id_songs DESC');
     $songs = [];
 
     while ($row = $result->fetch_assoc()) {
@@ -39,10 +58,10 @@ function getSongsForUser() {
     return getAllSongs();
 }
 
-function saveSongToDb($title, $url, $composer) {
+function saveSongToDb($title, $url, $composer, $genre = 'Інший') {
     $conn = getDbConnection();
-    $stmt = $conn->prepare('INSERT INTO songs (title, url, composer) VALUES (?, ?, ?)');
-    $stmt->bind_param('sss', $title, $url, $composer);
+    $stmt = $conn->prepare('INSERT INTO songs (title, url, composer, genre) VALUES (?, ?, ?, ?)');
+    $stmt->bind_param('ssss', $title, $url, $composer, $genre);
     $success = $stmt->execute();
     $insertId = $stmt->insert_id;
     $stmt->close();
@@ -180,6 +199,15 @@ function addSongToPlaylist($playlistId, $songId) {
     $conn = getDbConnection();
     $stmt = $conn->prepare('INSERT IGNORE INTO playlist_songs (id_playlist, id_song) VALUES (?, ?)');
     $stmt->bind_param('ii', $playlistId, $songId);
+    $success = $stmt->execute();
+    $stmt->close();
+    return $success;
+}
+
+function deletePlaylist($playlistId, $userId) {
+    $conn = getDbConnection();
+    $stmt = $conn->prepare('DELETE FROM play_list WHERE id = ? AND id_user = ?');
+    $stmt->bind_param('ii', $playlistId, $userId);
     $success = $stmt->execute();
     $stmt->close();
     return $success;

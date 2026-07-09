@@ -71,10 +71,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         // Фінальне переміщення файлу з тимчасової папки сервера у нашу
         if (move_uploaded_file($file["tmp_name"], $target_file)) {
-            $title = $safe_name;
+            // Отримуємо метадані з форми
+            $title = isset($_POST['track_title']) ? trim($_POST['track_title']) : $safe_name;
+            $composer = isset($_POST['composer']) ? trim($_POST['composer']) : 'Unknown';
+            
+            // Обробляємо жанри (приходять як JSON строка)
+            $genres = [];
+            if (isset($_POST['genre']) && !empty($_POST['genre'])) {
+                $decoded = json_decode($_POST['genre'], true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $g) {
+                        $g = trim($g);
+                        if (!empty($g)) {
+                            $genres[] = htmlspecialchars($g, ENT_QUOTES, 'UTF-8');
+                        }
+                    }
+                }
+            }
+            
+            // Якщо жанри не вибрані - ставимо "Інший"
+            if (empty($genres)) {
+                $genres = ['Інший'];
+            }
+            
+            // Зберігаємо жанри як JSON
+            $genre = json_encode($genres, JSON_UNESCAPED_UNICODE);
+            
+            // Очищаємо від HTML/JS
+            $title = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
+            $composer = htmlspecialchars($composer, ENT_QUOTES, 'UTF-8');
+            
             $url = 'uploads/' . $final_filename;
-            $composer = 'Unknown';
-            $savedId = saveSongToDb($title, $url, $composer);
+            $savedId = saveSongToDb($title, $url, $composer, $genre);
 
             if ($savedId !== false) {
                 header('Location: ../mymusic.php?success=1');

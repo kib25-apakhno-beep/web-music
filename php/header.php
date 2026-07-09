@@ -28,10 +28,10 @@ $isLoggedIn = isset($_SESSION['user_id']);
                         <a href="upload.php" class="text-white-50 text-decoration-none me-4" style="font-size: 0.85rem;">
                             <i class="bi bi-cloud-arrow-up me-1"></i> Додати MP3
                         </a>
-                        <a href="profile.php" class="text-white text-decoration-none d-flex align-items-center me-4" style="font-size: 0.85rem;">
+                        <div class="text-white text-decoration-none d-flex align-items-center me-4" style="font-size: 0.85rem;">
                             <i class="bi bi-person-circle fs-5 me-2 text-secondary"></i> 
                             <?php echo isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'Користувач'; ?>
-                        </a>
+                        </div>
                         <a href="db/logout.php" class="btn btn-outline-light btn-sm rounded-pill px-4 py-1" style="font-size: 0.8rem; border-color: rgba(255,255,255,0.2);">Вийти</a>
                     </div>
 

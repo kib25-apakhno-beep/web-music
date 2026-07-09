@@ -28,11 +28,20 @@ foreach ($customPlaylists as $p) {
     $playlistCounts[(int)$p['id']] = count($plistSongs);
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && trim($_POST['playlist_name']) !== '') {
-    $title = trim($_POST['playlist_name']);
-    createPlaylist($userId, $title);
-    header('Location: playlists.php');
-    exit();
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['playlist_name']) && trim($_POST['playlist_name']) !== '') {
+        $title = trim($_POST['playlist_name']);
+        createPlaylist($userId, $title);
+        header('Location: playlists.php');
+        exit();
+    }
+
+    if (isset($_POST['delete_playlist_id'])) {
+        $playlistIdToDelete = (int)$_POST['delete_playlist_id'];
+        deletePlaylist($playlistIdToDelete, $userId);
+        header('Location: playlists.php');
+        exit();
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -139,9 +148,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['playlist_name']) && t
                                             </div>
                             </div>
                         </a>
-                        <button type="button" class="btn btn-sm btn-light position-absolute play-playlist-btn" data-playlist-id="<?php echo (int)$playlist['id']; ?>" style="top:10px; right:10px; opacity:0.9;">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
+                        <div class="position-absolute d-flex gap-2" style="top:10px; right:10px;">
+                            <button type="button" class="btn btn-sm btn-light play-playlist-btn" data-playlist-id="<?php echo (int)$playlist['id']; ?>" style="opacity:0.9;">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <form method="POST" onsubmit="return confirm('Видалити цей плейлист?');" class="m-0">
+                                <input type="hidden" name="delete_playlist_id" value="<?php echo (int)$playlist['id']; ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-light" style="opacity:0.9;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             <?php endforeach; ?>

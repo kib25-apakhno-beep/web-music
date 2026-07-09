@@ -100,6 +100,7 @@ $playlists = getPlaylistsForUser($userId);
                             <div>
                                 <h6 class="mb-0 fw-bold text-white">' . htmlspecialchars($song_name) . '</h6>
                                 <small class="text-white-50" style="font-size: 0.75rem;">' . htmlspecialchars($song['composer'] ?: 'Локальний файл') . '</small>
+                                ' . (!empty($song['genre']) ? '<small class="d-block text-info-ish" style="font-size: 0.7rem; color: #32c8ff;">🎵 ' . htmlspecialchars(formatGenres($song['genre'])) . '</small>' : '') . '
                             </div>
                         </div>
                         
@@ -122,7 +123,7 @@ $playlists = getPlaylistsForUser($userId);
                                     <div class="px-2 pb-2 d-none playlist-submenu" data-track-index="' . $index . '">
                                         ' . ($playlists ? '' : '<div class="text-white-50 small px-2">Плейлисти відсутні</div>') . '
                                         ' . implode(array_map(function($playlist) use ($song, $index) {
-                                            return '<button type="button" class="btn btn-sm w-100 text-start rounded-3 mt-1 playlist-option" data-playlist-id="' . (int)$playlist['id'] . '" data-track-id="' . (int)$song['id'] . '" data-track-index="' . $index . '">+ ' . htmlspecialchars($playlist['title']) . '</button>';
+                                            return '<button type="button" class="btn btn-sm w-100 text-start rounded-3 mt-1 playlist-option" style="--bs-btn-color: rgba(255, 255, 255, 0.9);" data-playlist-id="' . (int)$playlist['id'] . '" data-track-id="' . (int)$song['id'] . '" data-track-index="' . $index . '">+ ' . htmlspecialchars($playlist['title']) . '</button>';
                                         }, $playlists)) . '
                                     </div>
                                 </li>
@@ -261,6 +262,16 @@ $playlists = getPlaylistsForUser($userId);
                 }).then(function (response) {
                     return response.text();
                 }).then(function () {
+                    document.querySelectorAll('.playlist-option').forEach(function (option) {
+                        option.classList.remove('btn-gradient');
+                        option.classList.add('btn-outline-light');
+                        option.style.color = '';
+                    });
+
+                    button.classList.remove('btn-outline-light');
+                    button.classList.add('btn-gradient');
+                    button.style.color = '#fff';
+
                     const label = button.closest('.dropdown').querySelector('.track-playlist-label');
                     if (label) {
                         label.textContent = '✓ Додано в плейлист';

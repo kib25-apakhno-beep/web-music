@@ -51,18 +51,7 @@ if (!empty($tracks)) {
                     Слухай добірки, знаходь нових виконавців та створюй власні плейлисти.
                 </p>
                 
-                <div class="search-box d-flex align-items-center p-1 rounded-pill mb-4" style="background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.25); max-width: 480px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
-                    
-                    <i class="bi bi-search text-white ms-3 fs-5"></i>
-                    
-                    <input type="text" class="form-control bg-transparent border-0 text-white shadow-none ms-2" placeholder="Знайти трек, виконавця або альбом...">
-                    
-                    <button class="btn rounded-pill px-4 py-2 text-white fw-bold btn-gradient">Знайти</button>
-                </div>
                 
-                <a href="#" class="text-white-50 text-decoration-none" style="font-size: 0.8rem;">
-                    <i class="bi bi-grid-fill me-1"></i> Переглянути весь каталог
-                </a>
                 
             </div>
         </div>

@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $savedId = saveSongToDb($title, $url, $composer, $genre);
 
             if ($savedId !== false) {
-                header('Location: ../mymusic.php?success=1');
+                header('Location: /');
                 exit();
             }
 

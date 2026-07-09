@@ -25,7 +25,7 @@
 
         <div class="d-flex flex-column align-items-center" style="width: 40%;">
             <div class="d-flex align-items-center gap-4 mb-1 mt-1">
-                <i class="bi bi-shuffle text-white-50 fs-6 player-icon d-none d-md-block" onclick="toggleActive(this)"></i>
+                <i id="shuffle-btn" class="bi bi-shuffle text-white-50 fs-6 player-icon d-none d-md-block"></i>
                 
                 <i id="prev-btn" class="bi bi-skip-start-fill text-white fs-4 player-icon"></i>
                 
@@ -36,7 +36,7 @@
                 
                 <i id="next-btn" class="bi bi-skip-end-fill text-white fs-4 player-icon"></i>
                 
-                <i class="bi bi-repeat text-white-50 fs-6 player-icon d-none d-md-block" onclick="toggleActive(this)"></i>
+                <i id="repeat-btn" class="bi bi-repeat text-white-50 fs-6 player-icon d-none d-md-block"></i>
             </div>
             
             <div class="d-flex align-items-center w-100">
@@ -48,7 +48,7 @@
 
         <div class="d-flex align-items-center justify-content-end" style="width: 30%;">
             <i id="player-heart" class="bi bi-heart text-white-50 fs-5 player-icon me-4 d-none d-lg-block" onclick="toggleFavoritePlayer()"></i>
-            <i class="bi bi-volume-up text-white-50 fs-5 player-icon me-2"></i>
+            <i id="volume-icon" class="bi bi-volume-up text-white-50 fs-5 player-icon me-2"></i>
             <div style="width: 80px;">
                 <input type="range" id="volume-bar" class="custom-range" min="0" max="100" value="70">
             </div>

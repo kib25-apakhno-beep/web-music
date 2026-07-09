@@ -104,9 +104,7 @@ $playlists = getPlaylistsForUser($userId);
                             </div>
                         </div>
                         
-                        <div class="pe-3 track-play-btn" style="cursor: pointer;" data-track-index="' . $index . '">
-                            <i class="bi bi-play-circle-fill fs-3" style="color: #ff6bc1; transition: 0.3s;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"></i>
-                        </div>
+                        
 
                         <div class="dropdown">
                             <i class="bi bi-three-dots-vertical text-white-50 fs-5" style="cursor: pointer;" data-bs-toggle="dropdown"></i>
@@ -129,7 +127,7 @@ $playlists = getPlaylistsForUser($userId);
                                 </li>
                                 <li><hr class="dropdown-divider" style="border-color: rgba(255,255,255,0.1);"></li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center text-danger track-action-delete" href="php/delete_track.php?file=' . rawurlencode($filename) . '" data-track-name="' . htmlspecialchars($song_name, ENT_QUOTES, 'UTF-8') . '">
+                                    <a class="dropdown-item d-flex align-items-center text-danger track-action-delete" href="#" data-track-index="' . $index . '" data-filename="' . htmlspecialchars($filename, ENT_QUOTES) . '" data-track-name="' . htmlspecialchars($song_name, ENT_QUOTES, 'UTF-8') . '">
                                         <i class="bi bi-trash3 me-3"></i> Видалити трек
                                     </a>
                                 </li>
@@ -281,11 +279,32 @@ $playlists = getPlaylistsForUser($userId);
 
             document.querySelectorAll('.track-action-delete').forEach(function (link) {
                 link.addEventListener('click', function (event) {
-                    const confirmed = confirm('Ви точно хочете видалити цей трек назавжди?');
-                    if (!confirmed) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    const trackName = this.getAttribute('data-track-name');
+                    const filename = this.getAttribute('data-filename');
+                    
+                    const confirmed = confirm('Видалити трек "' + trackName + '" назавжди?');
+                    if (!confirmed) return;
+
+                    const formData = new FormData();
+                    formData.append('file', filename);
+
+                    fetch('php/delete_track.php', {
+                        method: 'POST',
+                        body: formData
+                    }).then(function (response) {
+                        if (response.ok) {
+                            // Перезавантажуємо сторінку зі статусом успіху
+                            window.location.href = 'mymusic.php?deleted=1';
+                        } else {
+                            alert('Помилка при видаленні треку');
+                        }
+                    }).catch(function (error) {
+                        console.error('Помилка:', error);
+                        alert('Помилка при видаленні треку');
+                    });
                 });
             });
         });

@@ -157,6 +157,8 @@ $playlists = getPlaylistsForUser($userId);
         };
 
         function updateTrackMenuState() {
+            if (!window.isUserLoggedIn) return;
+
             document.querySelectorAll('.track-action-favorite').forEach(function (link) {
                 const track = pageTracks[Number(link.dataset.trackIndex)];
                 const label = link.querySelector('.track-favorite-label');
@@ -211,6 +213,14 @@ $playlists = getPlaylistsForUser($userId);
                     event.stopPropagation();
                     const track = pageTracks[Number(link.dataset.trackIndex)];
                     if (!track) return;
+                    if (!window.isUserLoggedIn) {
+                        if (window.showAuthMessage) {
+                            window.showAuthMessage('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+                        } else {
+                            alert('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+                        }
+                        return;
+                    }
 
                     const formData = new FormData();
                     formData.append('song_id', track.id);
@@ -218,7 +228,15 @@ $playlists = getPlaylistsForUser($userId);
                     fetch('favorite_actions.php', {
                         method: 'POST',
                         body: formData
-                    }).then(function () {
+                    }).then(function (response) {
+                        if (!response.ok) {
+                            if (window.showAuthMessage) {
+                                window.showAuthMessage('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+                            } else {
+                                alert('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+                            }
+                            return;
+                        }
                         updateTrackMenuState();
                     });
                 });

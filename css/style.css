@@ -3,31 +3,27 @@ body {
     flex-direction: column;
     min-height: 100vh;
     position: relative;
-    
-    /* Корекція фону та картинка-хвиля */
-    background-color: #060410; 
-    background-image: url('../img/index.jpg'); 
+    padding-bottom: 140px;
+    background-color: #060410;
+    background-image: url('../img/index.jpg');
     background-size: cover;
     background-position: center right;
     background-repeat: no-repeat;
-    
-    /* Магія змішування кольорів */
     background-blend-mode: screen;
-    
     color: #ffffff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    
-    background-attachment: fixed; 
+    background-attachment: fixed;
+    letter-spacing: 0.01em;
 }
 
 /* Затемнення зліва направо для тексту */
 body::before {
     content: '';
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, #060410 0%, rgba(6, 4, 16, 0.8) 40%, transparent 100%);
+    inset: 0;
+    background: linear-gradient(90deg, #060410 0%, rgba(6, 4, 16, 0.82) 40%, rgba(6, 4, 16, 0.45) 100%);
     z-index: -1;
 }
 
@@ -88,15 +84,23 @@ body::before {
 }
 
 /* Ефект підсвічування рядків з музикою при наведенні */
+.track-item {
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
 .track-item:hover {
     background: rgba(255, 255, 255, 0.09) !important;
+    transform: translateY(-2px);
+    border-color: rgba(255, 107, 193, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
 }
 /* ========================================= */
 /* СТИЛІ ДЛЯ ПЛАВАЮЧОГО МУЗИЧНОГО ПЛЕЄРА     */
 /* ========================================= */
 
-body {
-    padding-bottom: 120px;
+main, .body {
+    padding-bottom: 24px;
 }
 
 @keyframes spinRecord {
@@ -147,15 +151,16 @@ body {
     transform: scale(1.2);
 }
 
-/* Оновлені повзунки (БЕЗ БАГІВ З ТІННЮ) */
+/* Оновлені повзунки */
 .custom-range {
     -webkit-appearance: none;
     width: 100%;
     height: 6px;
-    background: rgba(255, 255, 255, 0.1); /* Базовий сірий колір */
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
     outline: none;
     cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 /* Маленька рожева крапка (повзунок) */
@@ -179,4 +184,69 @@ body {
 .collapse {
     position: relative;
     justify-content: flex-end;
+}
+
+.navbar-brand {
+    letter-spacing: 0.16em;
+}
+
+.navbar-nav .nav-link {
+    padding-inline: 0.6rem;
+}
+
+.glass-card,
+.playlist-card,
+.playlist-header,
+.track-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.playlist-card:hover,
+.track-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 107, 193, 0.25);
+}
+
+.dropdown-menu-dark {
+    background: rgba(10, 10, 20, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.alert {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+footer {
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+}
+
+.fixed-bottom {
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(95%, 940px);
+}
+
+.fixed-bottom > div {
+    width: 100%;
+    min-height: 76px;
+}
+
+@media (max-width: 768px) {
+    body {
+        padding-bottom: 180px;
+    }
+
+    .fixed-bottom {
+        width: calc(100% - 24px);
+        bottom: 8px;
+    }
 }

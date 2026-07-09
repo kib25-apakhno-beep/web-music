@@ -498,6 +498,11 @@
             return;
         }
 
+        if (!window.isUserLoggedIn) {
+            setFavoriteHeartState(false);
+            return;
+        }
+
         const trackId = getTrackId(track);
         if (trackId) {
             try {
@@ -534,6 +539,15 @@
     async function toggleFavoritePlayer() {
         const currentTrack = currentPlaylist[currentTrackIndex] || allAvailableTracks.find(track => track.url === audio.src) || null;
         if (!currentTrack) return;
+
+        if (!window.isUserLoggedIn) {
+            if (window.showAuthMessage) {
+                window.showAuthMessage('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+            } else {
+                alert('Щоб додати трек до улюблених, увійдіть у свій акаунт');
+            }
+            return;
+        }
 
         const trackId = getTrackId(currentTrack);
         if (trackId) {

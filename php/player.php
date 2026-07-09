@@ -56,5 +56,9 @@
     </div>
 </div>
 
+<script>
+    <?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); } ?>
+    window.isUserLoggedIn = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
+</script>
 <script src="js/player.js"></script>
 <script src="function/favorites.js"></script>

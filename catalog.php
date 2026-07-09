@@ -1,4 +1,9 @@
-<?php session_start(); ?>
+<?php
+session_start();
+require_once 'function/db_helpers.php';
+
+$tracks = getAllSongs();
+?>
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -104,61 +109,38 @@
             </div>
         </div>
 
-        <h5 class="text-white-50 mb-3">Нові релізи</h5>
+        <h5 class="text-white-50 mb-3">Вся музика з бази</h5>
         <div class="row g-4">
-            
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="glass-card p-3 rounded-4 text-center h-100">
-                    <div class="album-cover rounded-3 mb-3" style="width: 100%; aspect-ratio: 1; background-color: #d1228f; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-music-note-beamed fs-1 text-white-50"></i>
-                        <div class="play-btn">
-                            <i class="bi bi-play-fill fs-3 ms-1"></i>
+            <?php if (!empty($tracks)): ?>
+                <?php foreach ($tracks as $index => $track): ?>
+                    <?php $trackData = [
+                        'id' => (int)$track['id'],
+                        'title' => $track['title'],
+                        'artist' => $track['composer'] ?: 'Vestra',
+                        'filename' => basename($track['url']),
+                        'url' => $track['url']
+                    ]; ?>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <div class="glass-card p-3 rounded-4 text-center h-100" data-track-index="<?php echo $index; ?>" data-track='<?php echo htmlspecialchars(json_encode($trackData, JSON_UNESCAPED_UNICODE), ENT_QUOTES, 'UTF-8'); ?>'>
+                            <div class="album-cover rounded-3 mb-3" style="width: 100%; aspect-ratio: 1; background: linear-gradient(135deg, #d1228f, #8a43f2); display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-music-note-beamed fs-1 text-white-50"></i>
+                                <div class="play-btn">
+                                    <i class="bi bi-play-fill fs-3 ms-1"></i>
+                                </div>
+                            </div>
+                            <h6 class="text-white mb-1 text-truncate"><?php echo htmlspecialchars($track['title']); ?></h6>
+                            <p class="text-white-50 mb-0" style="font-size: 0.75rem;"><?php echo htmlspecialchars($track['composer'] ?: 'Vestra'); ?></p>
                         </div>
                     </div>
-                    <h6 class="text-white mb-1 text-truncate">Midnight City</h6>
-                    <p class="text-white-50 mb-0" style="font-size: 0.75rem;">M83</p>
-                </div>
-            </div>
-            
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="glass-card p-3 rounded-4 text-center h-100">
-                    <div class="album-cover rounded-3 mb-3" style="width: 100%; aspect-ratio: 1; background-color: #8a43f2; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-music-note-beamed fs-1 text-white-50"></i>
-                        <div class="play-btn">
-                            <i class="bi bi-play-fill fs-3 ms-1"></i>
-                        </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="text-center py-5 text-white-50">
+                        <i class="bi bi-music-note-list fs-1 mb-3"></i>
+                        <p class="mb-0">У базі поки немає треків.</p>
                     </div>
-                    <h6 class="text-white mb-1 text-truncate">Starboy</h6>
-                    <p class="text-white-50 mb-0" style="font-size: 0.75rem;">The Weeknd</p>
                 </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="glass-card p-3 rounded-4 text-center h-100">
-                    <div class="album-cover rounded-3 mb-3" style="width: 100%; aspect-ratio: 1; background-color: #ff6bc1; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-music-note-beamed fs-1 text-white-50"></i>
-                        <div class="play-btn">
-                            <i class="bi bi-play-fill fs-3 ms-1"></i>
-                        </div>
-                    </div>
-                    <h6 class="text-white mb-1 text-truncate">Future Nostalgia</h6>
-                    <p class="text-white-50 mb-0" style="font-size: 0.75rem;">Dua Lipa</p>
-                </div>
-            </div>
-
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="glass-card p-3 rounded-4 text-center h-100">
-                    <div class="album-cover rounded-3 mb-3" style="width: 100%; aspect-ratio: 1; background-color: #32c8ff; display: flex; align-items: center; justify-content: center;">
-                        <i class="bi bi-music-note-beamed fs-1 text-white-50"></i>
-                        <div class="play-btn">
-                            <i class="bi bi-play-fill fs-3 ms-1"></i>
-                        </div>
-                    </div>
-                    <h6 class="text-white mb-1 text-truncate">Random Access...</h6>
-                    <p class="text-white-50 mb-0" style="font-size: 0.75rem;">Daft Punk</p>
-                </div>
-            </div>
-            
+            <?php endif; ?>
         </div>
     </main>
 
@@ -166,5 +148,19 @@
     
     <?php include 'php/player.php'; ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.glass-card[data-track]').forEach(function (card) {
+                card.addEventListener('click', function () {
+                    try {
+                        const track = JSON.parse(card.getAttribute('data-track'));
+                        if (window.loadAndPlay && track && track.url) {
+                            window.loadAndPlay([track], 0);
+                        }
+                    } catch (e) {}
+                });
+            });
+        });
+    </script>
 </body>
 </html>
